@@ -1,0 +1,27 @@
+{
+  "name": "ceci-buffers",
+  "version": "0.1.0",
+  "description": "Very simple buffer implementations for use with Ceci",
+  "keywords": [
+    "buffer",
+    "ring buffer",
+    "data structure"
+  ],
+  "homepage": "https://github.com/odf/ceci-buffers",
+  "bugs": {
+    "url": "https://github.com/odf/ceci-buffers/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Olaf Delgado-Friedrichs",
+    "email": "olaf.delgado@gmail.com"
+  },
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/odf/ceci-buffers"
+  },
+  "devDependencies": {
+    "jasmine-node": "~1.13.0"
+  }
+}
