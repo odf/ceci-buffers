@@ -22,6 +22,10 @@
     "url": "https://github.com/odf/ceci-buffers"
   },
   "devDependencies": {
+    "comfychair": "~0.0.1",
     "jasmine-node": "~1.13.0"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/jasmine-node ."
   }
 }
