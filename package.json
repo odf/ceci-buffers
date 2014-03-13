@@ -1,6 +1,6 @@
 {
   "name": "ceci-buffers",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Very simple buffer implementations for use with Ceci",
   "keywords": [
     "buffer",
@@ -22,8 +22,8 @@
     "url": "https://github.com/odf/ceci-buffers"
   },
   "devDependencies": {
-    "comfychair": "~0.0.1",
-    "jasmine-node": "~1.13.0"
+    "comfychair": "~0.0.2",
+    "jasmine-node": "~1.14.0"
   },
   "scripts": {
     "test": "./node_modules/.bin/jasmine-node ."
