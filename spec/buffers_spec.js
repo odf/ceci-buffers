@@ -7,19 +7,24 @@ var cb = require('../index');
 
 describe('a ring buffer with an appropriate model', function() {
   var rb = {
-    _data: new cb.impl.RingBuffer(0),
-
-    reset: function() {
-      this._data = new cb.impl.RingBuffer(0);
-    },
-
     apply: function(command, args) {
-      return this._data[command].apply(this._data, args);
+      if (command == 'init')
+        this._data = new cb.impl.RingBuffer(args[0]);
+      else
+        return this._data[command].apply(this._data, args);
     }
   };
 
   var model = {
     _transitions: {
+      init: function(state, n) {
+        return {
+          state: {
+            data    : [],
+            capacity: n || 0
+          }
+        };
+      },
       capacity: function(state) {
         return {
           state : state,
@@ -83,22 +88,27 @@ describe('a ring buffer with an appropriate model', function() {
       }
     },
 
-    commands: function() {
-      return Object.keys(this._transitions);
+    _hasArgument: function(command) {
+      return ['init', 'write', 'resize'].indexOf(command) >= 0;
     },
 
+    commands: function() {
+      var cmds = Object.keys(this._transitions).slice();
+      cmds.splice(cmds.indexOf('init'), 1);
+      return cmds;
+    },
     randomArgs: function(command, size) {
-      if (command == 'write' || command == 'resize')
+      if (this._hasArgument(command))
         return [comfy.randomInt(0, size)];
       else
         return [];
     },
 
-    initial: function() {
-      return {
-        data    : [],
-        capacity: 0
-      }
+    shrinkArgs: function(command, args) {
+      if (this._hasArgument(command) && args[0] > 0)
+        return [[args[0] - 1]];
+      else
+        return [];
     },
 
     apply: function(state, command, args) {
