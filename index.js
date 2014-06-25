@@ -74,53 +74,39 @@ var DROPPING = 1;
 var SLIDING  = 2;
 
 
-function makeBuffer(size, type) {
-  var _buffer = RingBuffer(size || 1);
-  var _type = type || CHECKED;
+function buffer(type) {
+  return function makeBuffer(size) {
+    var _buffer = RingBuffer(size || 1);
 
-  function canFail() {
-    return _type == CHECKED;
+    function canFail() {
+      return type == CHECKED;
+    };
+
+    function push(val) {
+      if (!_buffer.isFull() || type == SLIDING)
+        _buffer.write(val);
+      else if (type == CHECKED)
+        return false;
+      return true;
+    };
+
+    function pull() {
+      return _buffer.isEmpty() ? [] : [_buffer.read()];
+    };
+
+    return {
+      canFail: canFail,
+      push   : push,
+      pull   : pull
+    };
   };
-
-  function push(val) {
-    if (!_buffer.isFull() || _type == SLIDING)
-      _buffer.write(val);
-    else if (_type == CHECKED)
-      return false;
-    return true;
-  };
-
-  function pull() {
-    return _buffer.isEmpty() ? [] : [_buffer.read()];
-  };
-
-  return {
-    canFail: canFail,
-    push   : push,
-    pull   : pull
-  };
-};
-
-
-function Buffer(size) {
-  return makeBuffer(size, CHECKED);
-};
-
-
-function DroppingBuffer(size) {
-  return makeBuffer(size, DROPPING);
-};
-
-
-function SlidingBuffer(size) {
-  return makeBuffer(size, SLIDING);
 };
 
 
 module.exports = {
-  Buffer        : Buffer,
-  DroppingBuffer: DroppingBuffer,
-  SlidingBuffer : SlidingBuffer,
+  Buffer        : buffer(CHECKED),
+  DroppingBuffer: buffer(DROPPING),
+  SlidingBuffer : buffer(SLIDING),
   impl: {
     RingBuffer  : RingBuffer
   }
