@@ -2,120 +2,119 @@
 
 
 function RingBuffer(size) {
-  this.size = size;
-  this.data_start = 0;
-  this.data_count = 0;
-  this.data = new Array(size);
+  var size = size;
+  var data_start = 0;
+  var data_count = 0;
+  var data = new Array(size);
+
+  function capacity() {
+    return size;
+  };
+
+  function count() {
+    return data_count;
+  };
+
+  function isEmpty() {
+    return data_count == 0;
+  };
+
+  function isFull() {
+    return data_count == size;
+  };
+
+  function write(val) {
+    var pos = (data_start + data_count) % size;
+    data[pos] = val;
+    if (data_count < size)
+      data_count += 1;
+    else
+      data_start = (data_start + 1) % size;
+  };
+
+  function read() {
+    if (data_count > 0) {
+      var val = data[data_start];
+      data_start = (data_start + 1) % size;
+      data_count = Math.max(data_count - 1, 0);
+      return val;
+    }
+  };
+
+  function resize(n) {
+    var new_data = new Array(n);
+    if (n < data_count) {
+      var base = data_start + data_count - n;
+      for (var i = 0; i < n; ++i)
+        new_data[i] = data[(base + i) % size];
+    }
+    else
+      for (var i = 0; i < data_count; ++i)
+        new_data[i] = data[(data_start + i) % size];
+    size = n;
+    data_start = 0;
+    data_count = Math.min(data_count, size);
+    data = new_data;
+  };
+
+  return {
+    capacity: capacity,
+    count   : count,
+    isEmpty : isEmpty,
+    isFull  : isFull,
+    write   : write,
+    read    : read,
+    resize  : resize
+  };
 };
 
 
-RingBuffer.prototype.capacity = function() {
-  return this.size;
-};
-
-RingBuffer.prototype.count = function() {
-  return this.data_count;
-};
-
-RingBuffer.prototype.isEmpty = function() {
-  return this.data_count == 0;
-};
-
-RingBuffer.prototype.isFull = function() {
-  return this.data_count == this.size;
-};
-
-RingBuffer.prototype.write = function(val) {
-  var pos = (this.data_start + this.data_count) % this.size;
-  this.data[pos] = val;
-  if (this.data_count < this.size)
-    this.data_count += 1;
-  else
-    this.data_start = (this.data_start + 1) % this.size;
-};
-
-RingBuffer.prototype.read = function() {
-  if (this.data_count > 0) {
-    var val = this.data[this.data_start];
-    this.data_start = (this.data_start + 1) % this.size;
-    this.data_count = Math.max(this.data_count - 1, 0);
-    return val;
-  }
-};
-
-RingBuffer.prototype.resize = function(n) {
-  var new_data = new Array(n);
-  if (n < this.data_count) {
-    var base = this.data_start + this.data_count - n;
-    for (var i = 0; i < n; ++i)
-      new_data[i] = this.data[(base + i) % this.size];
-  }
-  else
-    for (var i = 0; i < this.data_count; ++i)
-      new_data[i] = this.data[(this.data_start + i) % this.size];
-  this.size = n;
-  this.data_start = 0;
-  this.data_count = Math.min(this.data_count, this.size);
-  this.data = new_data;
-};
+var CHECKED  = 0;
+var DROPPING = 1;
+var SLIDING  = 2;
 
 
-var pull = function() {
-  return this.buffer.isEmpty() ? [] : [this.buffer.read()];
+function makeBuffer(size, type) {
+  var _buffer = RingBuffer(size || 1);
+  var _type = type || CHECKED;
+
+  function canFail() {
+    return _type == CHECKED;
+  };
+
+  function push(val) {
+    if (!_buffer.isFull() || _type == SLIDING)
+      _buffer.write(val);
+    else if (_type == CHECKED)
+      return false;
+    return true;
+  };
+
+  function pull() {
+    return _buffer.isEmpty() ? [] : [_buffer.read()];
+  };
+
+  return {
+    canFail: canFail,
+    push   : push,
+    pull   : pull
+  };
 };
 
 
 function Buffer(size) {
-  this.buffer = new RingBuffer(size || 1);
+  return makeBuffer(size, CHECKED);
 };
-
-Buffer.prototype.canFail = function() {
-  return true;
-};
-
-Buffer.prototype.push = function(val) {
-  if (this.buffer.isFull())
-    return false;
-  else {
-    this.buffer.write(val);
-    return true;
-  }
-};
-
-Buffer.prototype.pull = pull;
 
 
 function DroppingBuffer(size) {
-  this.buffer = new RingBuffer(size || 1);
+  return makeBuffer(size, DROPPING);
 };
-
-DroppingBuffer.prototype.canFail = function() {
-  return false;
-};
-
-DroppingBuffer.prototype.push = function(val) {
-  if (!this.buffer.isFull())
-    this.buffer.write(val);
-  return true;
-};
-
-DroppingBuffer.prototype.pull = pull;
 
 
 function SlidingBuffer(size) {
-  this.buffer = new RingBuffer(size || 1);
+  return makeBuffer(size, SLIDING);
 };
-
-SlidingBuffer.prototype.canFail = function() {
-  return false;
-};
-
-SlidingBuffer.prototype.push = function(val) {
-  this.buffer.write(val);
-  return true;
-};
-
-SlidingBuffer.prototype.pull = pull;
 
 
 module.exports = {
