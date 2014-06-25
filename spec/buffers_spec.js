@@ -229,22 +229,30 @@ function model(type) {
 };
 
 
-describe('a standard buffer with an appropriate model', function() {
-  it('conforms to the model', function() {
+describe('a standard buffer', function() {
+  it('conforms to the standard buffer model', function() {
     expect(buf(CHECKED)).toConformTo(model(CHECKED));
   });
 });
 
 
-describe('a standard buffer with an appropriate model', function() {
-  it('conforms to the model', function() {
+describe('a dropping buffer', function() {
+  it('conforms to the dropping buffer model', function() {
     expect(buf(DROPPING)).toConformTo(model(DROPPING));
   });
 });
 
 
-describe('a standard buffer with an appropriate model', function() {
-  it('conforms to the model', function() {
+describe('a sliding buffer', function() {
+  it('conforms to the sliding buffer model', function() {
     expect(buf(SLIDING)).toConformTo(model(SLIDING));
+  });
+});
+
+
+// sanity check
+describe('a standard buffer', function() {
+  it('does not conform to the dropping buffer model', function() {
+    expect(buf(CHECKED)).not.toConformTo(model(DROPPING));
   });
 });
